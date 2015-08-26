@@ -63,6 +63,11 @@ a {
   z-index: 100;
 }
 
+.dim-shade {
+  background: rgba(70, 70, 70, .5);
+  z-index: 100;
+}
+
 iframe.js {
   display: none;
 }
@@ -133,7 +138,7 @@ iframe.js {
     flex-shrink: 0;
   }
 
-  h1, h2, .notification-settings .notification-toggle .inner, .toolbox-button .inner {
+  h1, h2, .notification-settings .notification-toggle .inner, .toolbox-button .inner, .account-button .inner {
     font-size: .85rem;
     font-weight: bold;
     color: #777;
@@ -147,13 +152,13 @@ iframe.js {
 .info-pane {
   width: @info-pane-width;
 
-  .notification-list, .thread-list-container, .toolbox-button {
+  .notification-list, .thread-list-container, .toolbox-button, .account-area {
     margin-top: 4px;
     margin-left: -10px;
     margin-right: -10px;
   }
 
-  .toolbox-button, .thread-list-container {
+  .toolbox-button, .thread-list-container, .account-area {
     border-bottom: 1px solid #ccc;
     margin-bottom: 8px;
   }
@@ -483,6 +488,26 @@ iframe.js {
       }
     }
   }
+
+  .account-area {
+    display: flex;
+    margin-top: -8px;
+
+    .account-button {
+      flex: 1;
+      padding: 10px;
+      background: fade(@account-color, 7%);
+      .touchable-custom({
+        background: fade(@account-color, 18%);
+      });
+
+      .inner {
+        color: @account-color;
+        font-size: .95rem;
+        text-align: left;
+      }
+    }
+  }
 }
 
 .sidebar-pane {
@@ -766,7 +791,7 @@ iframe.js {
     padding: 3px;
     border-radius: 3px;
     .touchable-bg(white);
-    .button-icon('../res/close.svg', 14px, 0, 1);
+    .button-icon('../res/close-pane.svg', 14px, 0, 1);
     .larger-touch-target(10px, 10px);
   }
 }
@@ -1768,6 +1793,253 @@ iframe.js {
     max-height: 80vh;
     padding: 10px;
     padding-left: 14px;
+  }
+}
+
+.dialog-cover {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: 415px;
+  padding: @dialog-padding;
+  .dialog-shape();
+  background: white;
+  overflow: hidden;
+}
+
+.account-dialog {
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+
+  .spacer {
+    flex: 1;
+  }
+
+  .top-line {
+    @top-separator-bleed: 2px;
+    display: flex;
+    align-items: center;
+    margin: -@top-separator-bleed 0;
+    cursor: default;
+
+    .logo {
+      display: flex;
+      align-items: center;
+      margin-right: 20px;
+      border-right: 1px solid black;
+      padding-top: @top-separator-bleed;
+      padding-bottom: @top-separator-bleed;
+      padding-right: 20px;
+
+      .emoji-euphoria {
+        width: 26px;
+        height: 26px;
+        margin-right: 10px;
+      }
+    }
+
+    .close {
+      position: relative;
+      padding: 6px;
+      border-radius: 3px;
+      .touchable-bg(white);
+      .button-icon('../res/close-dialog.svg', 14px, 0, .5);
+      .larger-touch-target(10px, 10px);
+    }
+  }
+
+  form {
+    margin-top: 15px;
+
+    .text-field {
+      position: relative;
+      display: block;
+      font-size: .85rem;
+      margin: 15px 0;
+
+      input {
+        display: block;
+        width: 100%;
+        border: 0;
+        padding: 10px;
+        margin-top: 5px;
+        font-size: 1.15rem;
+        box-sizing: border-box;
+        border-radius: 3px;
+        box-shadow: 0 0 5px fade(black, 35%);
+        transition: all .15s ease;
+
+        &:focus {
+          box-shadow: 0 0 8px fade(saturate(@account-color, 95%), 55%);
+        }
+      }
+
+      .message {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: darken(@error-color, 5%);
+      }
+
+      &.error {
+        input {
+          box-shadow: 0 0 8px fade(@error-color, 70%);
+          padding-right: 44px;
+        }
+
+        .icon('../res/error.svg', 40px, 0, .75);
+        &:before {
+          position: absolute;
+          bottom: 0;
+          right: 2px;
+          background-size: 26px;
+        }
+      }
+
+      &.password {
+        .strength {
+          font-weight: bold;
+
+          &.strong {
+            color: green;
+          }
+
+          &.weak {
+            color: #8e7f52;
+          }
+        }
+      }
+    }
+
+    .check-field {
+      @size: 20px;
+      position: relative;
+      display: block;
+      margin: 15px 0;
+      padding-left: @size + 10px;
+      line-height: @size;
+
+      input[type="checkbox"] {
+        display: none;
+      }
+
+      input[type="checkbox"] + label {
+        &:after {
+          content: '';
+          display: inline-block;
+          position: absolute;
+          left: 0;
+          width: @size;
+          height: @size;
+          background: white;
+          box-shadow: 0 0 5px fade(black, 35%);
+          border-radius: 2px;
+          cursor: pointer;
+        }
+
+        .icon('../res/check.svg', 23px);
+        &:before {
+          position: absolute;
+          left: 1px;
+          bottom: 1px;
+          cursor: pointer;
+          z-index: 10;
+          opacity: 0;
+          transition: opacity .1s ease;
+        }
+      }
+
+      input[type="checkbox"]:checked + label {
+        &:before {
+          opacity: 1;
+        }
+      }
+
+      a {
+        color: @account-color;
+        font-weight: bold;
+      }
+    }
+
+    .line-button(@color) {
+      position: relative;
+      color: @color;
+      font-weight: bold;
+      background: linear-gradient(to bottom, fade(@color, 0%) 0%, fade(@color, 35%) 0%) repeat-x;
+      background-size: 1px 1px;
+      background-position: 0 1.1em;
+      .touchable-custom({
+        color: black;
+      });
+
+      .larger-target(10px, 10px);
+    }
+
+    .fill-button(@color) {
+      color: @color;
+      font-weight: bold;
+      background: fade(lighten(@color, 5%), 30%);
+      .touchable-custom({
+        background: fade(@color, 50%)
+      });
+      padding: 10px 26px;
+      border-radius: 3px;
+    }
+
+    .bottom {
+      padding: @dialog-padding;
+      margin: -@dialog-padding;
+      margin-top: 15px;
+
+      &.neutral-bg {
+        background: @neutral-color;
+        margin-top: 34px;
+        border-top: 1px solid darken(@neutral-color, 5%);
+      }
+
+      &.green-bg {
+        background: fade(@account-color, 7%);
+        margin-top: 34px;
+        border-top: 1px solid fade(@account-color, 10%);
+      }
+    }
+
+    .register-fine-print {
+      font-size: .85rem;
+      margin-bottom: 25px;
+    }
+
+    .action-line {
+      display: flex;
+      align-items: center;
+
+      button.forgot {
+        .line-button(fade(black, 65%));
+        opacity: .65;
+
+        &.highlight {
+          opacity: 1;
+          text-shadow: 0 0 5px #ffdca1;
+        }
+      }
+
+      button.open-register {
+        .line-button(@account-color);
+      }
+
+      button.sign-in, button.register {
+        .fill-button(@account-color);
+        margin-left: 22px;
+      }
+
+      button.send-reminder {
+        .fill-button(#666);
+      }
+    }
   }
 }
 
