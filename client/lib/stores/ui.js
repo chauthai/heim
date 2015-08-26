@@ -7,6 +7,7 @@ var clamp = require('../clamp')
 var actions = require('../actions')
 var storage = require('./storage')
 var chat = require('./chat')
+var accountFlow = require('./account-flow')
 var notification = require('./notification')
 var MessageData = require('../message-data')
 
@@ -42,6 +43,8 @@ var storeActions = module.exports.actions = Reflux.createActions([
   'finishMessageSelectionDrag',
   'openManagerToolbox',
   'closeManagerToolbox',
+  'openAccountDialog',
+  'closeAccountDialog',
 ])
 _.extend(module.exports, storeActions)
 
@@ -90,6 +93,7 @@ var store = module.exports.store = Reflux.createStore({
       managerToolboxAnchorEl: null,
       draggingMessageSelection: false,
       draggingMessageSelectionToggle: null,
+      accountDialogOpen: false,
     }
 
     this.threadData = new MessageData({selected: false})
@@ -418,6 +422,17 @@ var store = module.exports.store = Reflux.createStore({
 
   finishMessageSelectionDrag: function() {
     this.state.draggingMessageSelection = false
+    this.trigger(this.state)
+  },
+
+  openAccountDialog: function() {
+    this.state.accountDialogOpen = true
+    accountFlow.reset()
+    this.trigger(this.state)
+  },
+
+  closeAccountDialog: function() {
+    this.state.accountDialogOpen = false
     this.trigger(this.state)
   },
 })

@@ -8,6 +8,7 @@ var chat = require('../stores/chat')
 var ui = require('../stores/ui')
 var notification = require('../stores/notification')
 var activity = require('../stores/activity')
+var isTextInput = require('../is-text-input')
 var ChatPane = require('./chat-pane')
 var ChatTopBar = require('./chat-top-bar')
 var MessageText = require('./message-text')
@@ -15,6 +16,7 @@ var NotificationSettings = require('./notification-settings')
 var NotificationList = require('./notification-list')
 var ThreadList = require('./thread-list')
 var UserList = require('./user-list')
+var AccountDialog = require('./account-dialog')
 var Bubble = require('./bubble')
 var FastButton = require('./fast-button')
 var Panner = require('./panner')
@@ -218,7 +220,7 @@ module.exports = React.createClass({
         ui.closeFocusedThreadPane()
         return
       }
-    } else if (uiwindow.getSelection().isCollapsed) {
+    } else if (uiwindow.getSelection().isCollapsed && !isTextInput(ev.target)) {
       ui.focusEntry()
     }
   },
@@ -266,6 +268,7 @@ module.exports = React.createClass({
         {this.state.storage && this.state.storage.useOpenDyslexic && <link rel="stylesheet" type="text/css" id="css" href="/static/od.css" />}
         <div className="info-pane" onMouseEnter={ui.freezeInfo} onMouseLeave={ui.thawInfo}>
           {this.state.ui.managerMode && <FastButton ref="toolboxButton" className={classNames('toolbox-button', {'empty': !this.state.chat.selectedMessages.size, 'selected': !!this.state.ui.managerToolboxAnchorEl})} onClick={this.state.ui.managerToolboxAnchorEl ? ui.closeManagerToolbox : this.openManagerToolbox}>toolbox {selectedMessageCount > -1 && <span className="count">{selectedMessageCount} selected</span>}</FastButton>}
+          <div className="account-area"><FastButton className="account-button" onClick={ui.openAccountDialog}>sign in or register</FastButton></div>
           <h2>discussions</h2>
           <div className="thread-list-container">
             <ThreadList ref="threadList" threadData={ui.store.threadData} threadTree={this.state.ui.frozenThreadList || this.state.chat.messages.threads} tree={this.state.chat.messages} onScroll={this.onThreadsScroll} onThreadSelect={this.onThreadSelect} />
@@ -321,6 +324,9 @@ module.exports = React.createClass({
         {!thin && this.state.ui.managerMode && <Bubble ref="managerToolboxPopup" className="manager-toolbox-popup bubble-from-top" anchorEl={this.state.ui.managerToolboxAnchorEl} visible={!!this.state.ui.managerToolboxAnchorEl} offset={anchorBox => ({ left: anchorBox.width, top: -anchorBox.height })}>
           <ManagerToolbox />
         </Bubble>}
+        {this.state.ui.accountDialogOpen && <div className="dim-shade dialog-cover fill">
+          <AccountDialog onClose={ui.closeAccountDialog} />
+        </div>}
         {this.templateHook('page-bottom')}
       </Panner>
     )
