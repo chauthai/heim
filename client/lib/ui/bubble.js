@@ -2,6 +2,8 @@ var React = require('react/addons')
 var classNames = require('classnames')
 var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
+var Popup = require('./popup')
+
 
 module.exports = React.createClass({
   displayName: 'Bubble',
@@ -14,30 +16,22 @@ module.exports = React.createClass({
     }
   },
 
-  componentWillMount: function() {
-    Heim.addEventListener(uidocument.body, Heim.isTouch ? 'touchstart' : 'click', this.onOutsideClick, false)
-  },
-
-  componentWillUnmount: function() {
-    Heim.removeEventListener(uidocument.body, Heim.isTouch ? 'touchstart' : 'click', this.onOutsideClick, false)
-  },
-
-  onOutsideClick: function(ev) {
-    if (this.props.visible && !this.getDOMNode().contains(ev.target) && this.props.onDismiss) {
-      this.props.onDismiss(ev)
-    }
-  },
-
   render: function() {
     return (
       <ReactCSSTransitionGroup transitionName="bubble">
         {this.props.visible &&
-          <div ref="bubble" key="bubble" className={classNames('bubble', this.props.className)}>
+          <Popup ref="bubble" key="bubble" className={classNames('bubble', this.props.className)} onDismiss={this.onDismiss}>
             {this.props.children}
-          </div>
+          </Popup>
         }
       </ReactCSSTransitionGroup>
     )
+  },
+
+  onDismiss: function(ev) {
+    if (this.props.visible) {
+      this.props.onDismiss(ev)
+    }
   },
 
   componentDidMount: function() {
