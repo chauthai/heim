@@ -238,8 +238,8 @@ if (!window.frameElement) {
         Heim.tabPressed = true
       }
 
-      if (Heim.mainComponent && !Heim.mainComponent.getDOMNode().contains(ev.target)) {
-        Heim.mainComponent.onKeyDown(ev)
+      if (Heim.mainComponent) {
+        Heim.ui.keydownOnPage(ev)
       }
     }, false)
 
