@@ -286,7 +286,7 @@ var store = module.exports.store = Reflux.createStore({
           lastFocusedPane.blurEntry()
         }
         if (!Heim.isTouch) {
-          this.state.panes.get(id).focusEntry()
+          this.focusEntry()
         }
       })
     })
@@ -329,7 +329,9 @@ var store = module.exports.store = Reflux.createStore({
   },
 
   focusEntry: function(character) {
-    this._focusedPane().focusEntry(character)
+    if (!this.state.accountDialogOpen) {
+      this._focusedPane().focusEntry(character)
+    }
   },
 
   onViewPan: function(target) {
@@ -354,6 +356,10 @@ var store = module.exports.store = Reflux.createStore({
   },
 
   keydownOnPage: function(ev) {
+    if (this.state.accountDialogOpen) {
+      return
+    }
+
     if (Heim.tabPressed) {
       storeActions.tabKeyCombo(ev)
     } else {
