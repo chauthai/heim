@@ -13,6 +13,7 @@ var MessageData = require('../message-data')
 
 var storeActions = module.exports.actions = Reflux.createActions([
   'keydownOnPage',
+  'tabKeyCombo',
   'setUISize',
   'focusEntry',
   'focusPane',
@@ -46,6 +47,7 @@ _.extend(module.exports, storeActions)
 
 // sync to allow entry to preventDefault keydown events
 storeActions.keydownOnPage.sync = true
+storeActions.tabKeyCombo.sync = true
 
 // sync so UI mode changes don't flicker on load
 storeActions.setUISize.sync = true
@@ -348,7 +350,12 @@ var store = module.exports.store = Reflux.createStore({
   },
 
   keydownOnPage: function(ev) {
-    this._focusedPane().keydownOnPane(ev)
+    if (Heim.tabPressed) {
+      storeActions.tabKeyCombo(ev)
+    } else {
+      this.focusEntry()
+      this._focusedPane().keydownOnPane(ev)
+    }
   },
 
   gotoMessageInPane: function(messageId) {
