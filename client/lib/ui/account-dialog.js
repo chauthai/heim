@@ -14,10 +14,14 @@ module.exports = React.createClass({
     Reflux.connect(accountFlow.store, 'flow'),
   ],
 
+  onChangePassword: function(ev) {
+    accountFlow.changePassword(ev.target.value)
+  },
+
   render: function() {
     var flow = this.state.flow
 
-    var passwordStrength = flow.passwordStrength && (
+    var passwordStrength = flow.state =='register' && flow.passwordStrength && (
       <div className={classNames('message', 'strength', flow.passwordStrength.level)}>
         {flow.passwordStrength.message}
       </div>
@@ -33,11 +37,11 @@ module.exports = React.createClass({
             hey, this is important:
             <div className="check-field">
               <input type="checkbox" id="accept-legal" />
-              <label htmlFor="accept-legal">I agree to Euphoria's <a href>Terms of Service</a> and <a href>Privacy Policy</a>.</label>
+              <label htmlFor="accept-legal">I agree to Euphoria's <a href target="_blank">Terms of Service</a> and <a href target="_blank">Privacy Policy</a>.</label>
             </div>
             <div className="check-field">
               <input type="checkbox" id="accept-community" />
-              <label htmlFor="accept-community">I will respect and uphold Euphoria's <a href>rules</a> and <a href>values</a>.</label>
+              <label htmlFor="accept-community">I will respect and uphold Euphoria's <a href target="_blank">rules</a> and <a href target="_blank">values</a>.</label>
             </div>
           </div>
           <div className="action-line">
@@ -64,7 +68,7 @@ module.exports = React.createClass({
           <div className="action-line">
             <button type="button" className={classNames('forgot', flow.highlightForgot && 'highlight')}>forgot password?</button>
             <div className="spacer" />
-            <button type="button" className="open-register">register</button>
+            <button type="button" className="open-register" onClick={accountFlow.openRegister}>register</button>
             <button type="submit" className="sign-in">sign in</button>
           </div>
         </div>
@@ -94,7 +98,7 @@ module.exports = React.createClass({
               <div className="message">{flow.passwordError}</div>
               : passwordStrength
             }
-            <input type="password" />
+            <input type="password" onChange={this.onChangePassword} />
           </label>
           {bottom}
         </form>
