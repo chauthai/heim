@@ -433,12 +433,12 @@ var store = module.exports.store = Reflux.createStore({
 
   openAccountDialog: function() {
     this.state.accountDialogOpen = true
-    accountFlow.reset()
     this.trigger(this.state)
   },
 
   closeAccountDialog: function() {
     this.state.accountDialogOpen = false
+    accountFlow.reset()
     this.trigger(this.state)
   },
 })
