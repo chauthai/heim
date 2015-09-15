@@ -1855,6 +1855,11 @@ iframe.js {
   form {
     margin-top: 15px;
 
+    .message {
+      font-size: .85rem;
+      color: darken(@error-color, 5%);
+    }
+
     .text-field {
       position: relative;
       display: block;
@@ -1871,18 +1876,33 @@ iframe.js {
         box-sizing: border-box;
         border-radius: 3px;
         box-shadow: 0 0 5px fade(black, 35%);
-        transition: all .15s ease;
 
         &:focus {
           box-shadow: 0 0 8px fade(saturate(@account-color, 95%), 55%);
         }
+
+        &:disabled {
+          background: white;
+        }
+      }
+
+      &, .message, &:before {
+        transition: opacity .1s ease, color .1s ease;
+      }
+
+      .icon('../res/error.svg', 40px, 0, 0);
+      &:before {
+        position: absolute;
+        bottom: 0;
+        right: 2px;
+        background-size: 26px;
       }
 
       .message {
         position: absolute;
         top: 0;
         right: 0;
-        color: darken(@error-color, 5%);
+        opacity: 0;
       }
 
       &.error {
@@ -1891,21 +1911,18 @@ iframe.js {
           padding-right: 44px;
         }
 
-        .icon('../res/error.svg', 40px, 0, .75);
-        &:before {
-          position: absolute;
-          bottom: 0;
-          right: 2px;
-          background-size: 26px;
+        .message, &:before {
+          opacity: 1;
         }
       }
 
       &.password {
         .strength {
-          font-weight: bold;
+          opacity: 1;
 
           &.strong {
             color: green;
+            font-weight: bold;
           }
 
           &.weak {
@@ -1924,7 +1941,9 @@ iframe.js {
       line-height: @size;
 
       input[type="checkbox"] {
-        display: none;
+        // keep visible so that tabIndex works.
+        width: 0;
+        height: 0;
       }
 
       input[type="checkbox"] + label {
@@ -1939,6 +1958,7 @@ iframe.js {
           box-shadow: 0 0 5px fade(black, 35%);
           border-radius: 2px;
           cursor: pointer;
+          transition: box-shadow .1s ease;
         }
 
         .icon('../res/check.svg', 23px);
@@ -1950,6 +1970,12 @@ iframe.js {
           z-index: 10;
           opacity: 0;
           transition: opacity .1s ease;
+        }
+      }
+
+      input[type="checkbox"]:focus + label {
+        &:after {
+          box-shadow: 0 0 8px fade(saturate(@account-color, 95%), 70%);
         }
       }
 
@@ -1977,17 +2003,37 @@ iframe.js {
       });
 
       .larger-target(10px, 10px);
+
+      &:focus {
+        color: mix(@color, black, 15%);
+      }
+
+      &:disabled {
+        opacity: .5;
+      }
     }
 
     .fill-button(@color) {
+      @bgcolor: mix(lighten(@color, 5%), white, 30%);
       color: @color;
       font-weight: bold;
-      background: fade(lighten(@color, 5%), 30%);
+      background: @bgcolor;
       .touchable-custom({
         background: fade(@color, 50%)
       });
       padding: 10px 26px;
       border-radius: 3px;
+
+      // prevent other properties from transitioning when form switches into forgot password mode
+      transition: background .25s ease, opacity .25s ease;
+
+      &:focus {
+        background: darken(@bgcolor, 10%)
+      }
+
+      &:disabled {
+        opacity: .5;
+      }
     }
 
     .bottom {

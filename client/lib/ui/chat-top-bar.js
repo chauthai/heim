@@ -7,6 +7,7 @@ var update = require('../stores/update')
 var FastButton = require('./fast-button')
 var Bubble = require('./toggle-bubble')
 var RoomTitle = require('./room-title')
+var Spinner = require('./spinner')
 
 
 var hexLeftSVG = fs.readFileSync(__dirname + '/../../res/hex-left-side.svg')
@@ -28,7 +29,7 @@ module.exports = React.createClass({
         <RoomTitle name={this.props.roomName} authType={this.props.authType} connected={this.props.connected} joined={this.props.joined} />
         {this.props.isManager && <FastButton className={classNames('manager-toggle', {'on': this.props.managerMode})} onClick={this.props.toggleManagerMode}><div className="hex left" dangerouslySetInnerHTML={{__html: hexLeftSVG}} />{this.props.managerMode ? 'manager mode' : 'manager'}<div className="hex right" dangerouslySetInnerHTML={{__html: hexRightSVG}} /></FastButton>}
         <div className="right">
-          <ReactCSSTransitionGroup transitionName="spinner">{this.props.working && <div key="spinner" className="spinner" />}</ReactCSSTransitionGroup>
+          <Spinner visible={this.props.working} />
           {this.props.joined && <FastButton fastTouch className="user-count" onClick={this.props.toggleUserList}>{userCount}</FastButton>}
         </div>
         <Bubble ref="updateBubble" className="update" visible={this.props.updateReady}>
