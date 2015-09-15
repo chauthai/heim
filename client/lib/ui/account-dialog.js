@@ -21,7 +21,7 @@ module.exports = React.createClass({
     }
   },
 
-  onFormBlur: function(ev) {
+  onFormBlur: function() {
     this.setState({focused: null})
   },
 
@@ -137,8 +137,8 @@ module.exports = React.createClass({
           </label>
           <label className={classNames('text-field', 'password', flow.passwordError && 'error')}>
             password
-            {flow.passwordError && !(this.state.passwordEntryFocused && passwordStrength)
-              ? <div className="message">{flow.passwordError}</div>
+            {flow.passwordError && !(this.state.passwordEntryFocused && passwordStrength) ?
+              <div className="message">{flow.passwordError}</div>
               : passwordStrength
             }
             <input type="password" name="password" tabIndex="2" disabled={flow.working} onChange={this.onChangePassword} onFocus={this.onFocusPassword} onBlur={this.onBlurPassword} />

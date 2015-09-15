@@ -8,7 +8,6 @@ var chat = require('../stores/chat')
 var ui = require('../stores/ui')
 var notification = require('../stores/notification')
 var activity = require('../stores/activity')
-var isTextInput = require('../is-text-input')
 var ChatPane = require('./chat-pane')
 var ChatTopBar = require('./chat-top-bar')
 var MessageText = require('./message-text')
@@ -26,7 +25,6 @@ module.exports = React.createClass({
   displayName: 'Main',
 
   mixins: [
-    require('./hooks-mixin'),
     Reflux.ListenerMixin,
     Reflux.connect(chat.store, 'chat'),
     Reflux.connect(activity.store, 'activity'),

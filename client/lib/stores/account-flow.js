@@ -4,7 +4,6 @@ var Immutable = require('immutable')
 var Entropizer = require('entropizer')
 
 var chat = require('./chat')
-var ui = require('./ui')
 
 
 var entropizer = new Entropizer()
@@ -34,7 +33,7 @@ var passwordWeak = new PasswordStrengthRecord({
   ok: false,
 })
 
-passwordStrong = new PasswordStrengthRecord({
+var passwordStrong = new PasswordStrengthRecord({
   level: 'strong',
   message: 'strong password',
   ok: true,
