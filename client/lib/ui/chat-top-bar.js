@@ -1,7 +1,6 @@
 var fs = require('fs')
 var React = require('react/addons')
 var classNames = require('classnames')
-var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup
 
 var update = require('../stores/update')
 var FastButton = require('./fast-button')
