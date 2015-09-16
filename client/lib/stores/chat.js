@@ -194,7 +194,7 @@ module.exports.store = Reflux.createStore({
       }
     } else if (ev.type == 'reset-password-reply') {
       if (ev.error) {
-        storeActions.resetPassword.failed(ev.data)
+        storeActions.resetPassword.failed(ev)
       } else {
         storeActions.resetPassword.completed()
       }

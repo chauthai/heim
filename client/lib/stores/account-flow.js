@@ -90,11 +90,15 @@ module.exports.store = Reflux.createStore({
 
     // note: using location.replace instead of reload here so that resources
     // are loaded from cache.
-    uiwindow.location.replace(window.location)
+    if (uiwindow.hash) {
+      uiwindow.location.reload()
+    } else {
+      uiwindow.location.replace(uiwindow.location)
+    }
   },
 
   loginCompleted: function() {
-    if (step == 'signin') {
+    if (this.state.get('step') == 'signin') {
       this._reloadPage()
     }
   },
@@ -118,7 +122,10 @@ module.exports.store = Reflux.createStore({
 
   registerCompleted: function() {
     if (this.state.get('step') == 'register') {
-      this._reloadPage()
+      this.triggerUpdate(this.state.merge({
+        step: 'register-email-sent',
+        working: false,
+      }))
     }
   },
 
@@ -136,19 +143,24 @@ module.exports.store = Reflux.createStore({
   },
 
   resetPasswordCompleted: function() {
-    this.validateUpdate(state => {
-      if (this.state.get('step') == 'forgot') {
-        state.set('working', false)
-        state.set('passwordResetSent', true)
-      }
-    })
+    if (this.state.get('step') == 'forgot') {
+      this.triggerUpdate(this.state.merge({
+        step: 'reset-email-sent',
+        working: false,
+      }))
+    }
   },
 
   resetPasswordFailed: function(data) {
     this.validateUpdate(state => {
       if (state.get('step') == 'forgot') {
         state.set('working', false)
-        state.set('passwordResetError', 'error sending. try again?')
+        if (data.error == 'account not found') {
+          state.set('emailError', 'account not found')
+          state.set('valid', false)
+        } else {
+          state.set('passwordResetError', 'error sending. try again?')
+        }
       }
     })
   },
@@ -196,12 +208,14 @@ module.exports.store = Reflux.createStore({
   _validatePassword: function(state, fatal) {
     var error
 
-    if (!state.get('password')) {
-      if (state.get('strict')) {
-        error = 'please enter a password'
+    if (state.get('step') != 'forgot') {
+      if (!state.get('password')) {
+        if (state.get('strict')) {
+          error = 'please enter a password'
+        }
+      } else if (state.get('step') == 'register' && state.get('passwordStrength').get('level') != 'strong') {
+        error = 'please choose a stronger password'
       }
-    } else if (state.get('step') == 'register' && state.get('passwordStrength').get('level') != 'strong') {
-      error = 'please choose a stronger password'
     }
 
     if (!error || fatal) {
@@ -238,7 +252,7 @@ module.exports.store = Reflux.createStore({
     }))
   },
 
-  validateSubmit: function(callback, validators) {
+  validateSubmit: function(callback) {
     this.triggerUpdate(this.state.withMutations(state => {
       state.set('strict', true)
       var valid = _.all(_.map([
@@ -306,14 +320,8 @@ module.exports.store = Reflux.createStore({
   },
 
   resetPassword: function() {
-    this.triggerUpdate(this.state.withMutations(state => {
-      state.set('strict', true)
-      this._validateEmail(state, true, true)
-      if (!state.get('emailError')) {
-        state.set('working', true)
-        state.set('strict', false)
-        chat.resetPassword(state.get('email'))
-      }
-    }))
+    this.validateSubmit(state => {
+      chat.resetPassword(state.get('email'))
+    })
   },
 })

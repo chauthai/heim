@@ -1856,10 +1856,10 @@ iframe.js {
     }
   }
 
-  form {
+  .content {
     margin-top: 15px;
 
-    .message {
+    .error-message {
       font-size: .85rem;
       color: darken(@error-color, 5%);
     }
@@ -1890,7 +1890,7 @@ iframe.js {
         }
       }
 
-      &, .message, &:before {
+      &, .error-message, &:before {
         transition: opacity .1s ease, color .1s ease;
       }
 
@@ -1902,7 +1902,7 @@ iframe.js {
         background-size: 26px;
       }
 
-      .message {
+      .error-message {
         position: absolute;
         top: 0;
         right: 0;
@@ -1915,7 +1915,7 @@ iframe.js {
           padding-right: 44px;
         }
 
-        .message, &:before {
+        .error-message, &:before {
           opacity: 1;
         }
       }
@@ -2006,10 +2006,14 @@ iframe.js {
         color: black;
       });
 
+      transition: color .25s ease;
+
       .larger-target(10px, 10px);
 
       &:focus {
         color: mix(@color, black, 15%);
+        background: fade(@account-color, 20%);
+        border-radius: 3px;
       }
 
       &:disabled {
@@ -2032,7 +2036,7 @@ iframe.js {
       transition: background .25s ease, opacity .25s ease;
 
       &:focus {
-        background: darken(@bgcolor, 10%)
+        background: darken(@bgcolor, 10%);
       }
 
       &:disabled {
@@ -2040,16 +2044,22 @@ iframe.js {
       }
     }
 
+    .notice {
+      text-align: center;
+    }
+
+    .email-icon {
+      background: data-uri('../res/email.svg') no-repeat center center;
+      background-size: contain;
+      width: 300px;
+      height: 200px;
+      margin: 20px auto 30px;
+    }
+
     .bottom {
       padding: @dialog-padding;
       margin: -@dialog-padding;
       margin-top: 15px;
-
-      &.neutral-bg {
-        background: @neutral-color;
-        margin-top: 34px;
-        border-top: 1px solid darken(@neutral-color, 5%);
-      }
 
       &.green-bg {
         background: fade(@account-color, 7%);
@@ -2067,7 +2077,15 @@ iframe.js {
       display: flex;
       align-items: center;
 
-      button.forgot {
+      &.centered {
+        justify-content: center;
+      }
+
+      button.open-register, button.open-sign-in {
+        .line-button(@account-color);
+      }
+
+      button.forgot, button.open-sign-in.gray {
         .line-button(fade(black, 65%));
         opacity: .65;
 
@@ -2076,13 +2094,12 @@ iframe.js {
         }
       }
 
-      button.open-register, button.open-signin {
-        .line-button(@account-color);
-      }
-
-      button.sign-in, button.register {
+      button.sign-in, button.register, button.send-reminder, button.continue {
         .fill-button(@account-color);
-        margin-left: 22px;
+
+        &.sign-in, &.register, &.send-reminder {
+          margin-left: 22px;
+        }
       }
 
       button.send-reminder {
