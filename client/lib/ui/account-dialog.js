@@ -97,9 +97,9 @@ module.exports = React.createClass({
       bottom = (
         <div className="bottom neutral-bg">
           <div className="action-line">
-            <button type="button" tabIndex="4" className="send-reminder">send a password reset email</button>
+            <button type="button" tabIndex="4" className={classNames('send-reminder', 'sent' && flow.passwordResetSent)} disabled={flow.emailError || flow.passwordResetSent || flow.working} onClick={accountFlow.resetPassword}>{flow.passwordResetSent ? 'check your email!' : flow.passwordResetError || 'send a password reset email'}</button>
             <div className="spacer" />
-            <button key="sign-in" type="submit" tabIndex="3" className="sign-in">sign in</button>
+            <button key="sign-in" type="submit" tabIndex="3" className="sign-in" disabled={!flow.valid || flow.working} onClick={accountFlow.signIn}>sign in</button>
           </div>
         </div>
       )

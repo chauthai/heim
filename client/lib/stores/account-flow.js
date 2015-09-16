@@ -19,6 +19,7 @@ var storeActions = Reflux.createActions([
   'changeAcceptCommunity',
   'signIn',
   'register',
+  'resetPassword',
 ])
 _.extend(module.exports, storeActions)
 
@@ -44,15 +45,18 @@ var StateRecord = Immutable.Record({
   step: 'signin',
   email: null,
   password: null,
+  passwordStrength: null,
   acceptLegal: false,
   acceptCommunity: false,
+  strict: false,
   valid: true,
   emailError: null,
   passwordError: null,
   agreementError: null,
   highlightForgot: false,
   showSignInButton: false,
-  passwordStrength: null,
+  passwordResetError: false,
+  passwordResetSent: false,
   working: false,
 })
 
@@ -61,8 +65,10 @@ module.exports.store = Reflux.createStore({
     storeActions,
     {loginCompleted: chat.login.completed},
     {loginFailed: chat.login.failed},
-    {registerCompleted: chat.register.completed},
-    {registerFailed: chat.register.failed},
+    {registerCompleted: chat.registerAccount.completed},
+    {registerFailed: chat.registerAccount.failed},
+    {resetPasswordCompleted: chat.resetPassword.completed},
+    {resetPasswordFailed: chat.resetPassword.failed},
   ],
 
   mixins: [require('./immutable-mixin')],
@@ -88,23 +94,26 @@ module.exports.store = Reflux.createStore({
   },
 
   loginCompleted: function() {
-    if (this.state.get('step') == 'signin') {
+    if (step == 'signin') {
       this._reloadPage()
     }
   },
 
   loginFailed: function(data) {
-    this.validateUpdate(state => {
-      if (state.get('step') == 'signin') {
+    this.triggerUpdate(this.state.withMutations(state => {
+      var step = state.get('step')
+      if (step == 'signin' || step == 'forgot') {
         state.set('working', false)
         if (data.reason == 'account not found') {
           state.set('emailError', 'account not found')
+          state.set('valid', false)
         } else if (data.reason == 'access denied') {
           state.set('passwordError', 'no dice, sorry!')
+          state.set('valid', false)
           state.set('highlightForgot', true)
         }
       }
-    })
+    }))
   },
 
   registerCompleted: function() {
@@ -114,13 +123,32 @@ module.exports.store = Reflux.createStore({
   },
 
   registerFailed: function(data) {
-    this.validateUpdate(state => {
+    this.triggerUpdate(this.state.withMutations(state => {
       if (state.get('step') == 'register') {
         state.set('working', false)
         if (data.reason == 'personal identity already in use') {
           state.set('emailError', 'this email is already in use')
+          state.set('valid', false)
           state.set('showSignInButton', true)
         }
+      }
+    }))
+  },
+
+  resetPasswordCompleted: function() {
+    this.validateUpdate(state => {
+      if (this.state.get('step') == 'forgot') {
+        state.set('working', false)
+        state.set('passwordResetSent', true)
+      }
+    })
+  },
+
+  resetPasswordFailed: function(data) {
+    this.validateUpdate(state => {
+      if (state.get('step') == 'forgot') {
+        state.set('working', false)
+        state.set('passwordResetError', 'error sending. try again?')
       }
     })
   },
@@ -129,12 +157,22 @@ module.exports.store = Reflux.createStore({
     this.triggerUpdate(new StateRecord())
   },
 
+  openSignIn: function() {
+    this.validateUpdate(state => {
+      state.set('step', 'signin')
+    })
+  },
+
   openRegister: function() {
-    this.triggerUpdate(this.state.set('step', 'register'))
+    this.validateUpdate(state => {
+      state.set('step', 'register')
+    })
   },
 
   openForgot: function() {
-    this.triggerUpdate(this.state.set('step', 'forgot'))
+    this.validateUpdate(state => {
+      state.set('step', 'forgot')
+    })
   },
 
   _validateEmail: function(state, fatal) {
@@ -142,7 +180,9 @@ module.exports.store = Reflux.createStore({
     var error
 
     if (!email) {
-      error =  'please enter an email'
+      if (state.get('strict')) {
+        error = 'please enter an email'
+      }
     } else if (!/.+@.+/.test(email)) {
       error =  'is that an email address?'
     }
@@ -150,13 +190,16 @@ module.exports.store = Reflux.createStore({
     if (!error || fatal) {
       state.set('emailError', error)
     }
+    return !error
   },
 
   _validatePassword: function(state, fatal) {
     var error
 
     if (!state.get('password')) {
-      error = 'please enter a password'
+      if (state.get('strict')) {
+        error = 'please enter a password'
+      }
     } else if (state.get('step') == 'register' && state.get('passwordStrength').get('level') != 'strong') {
       error = 'please choose a stronger password'
     }
@@ -164,37 +207,52 @@ module.exports.store = Reflux.createStore({
     if (!error || fatal) {
       state.set('passwordError', error)
     }
+    return !error
   },
 
   _validateAgreements: function(state, fatal) {
     var error
 
-    if (!state.get('acceptLegal') || !state.get('acceptCommunity')) {
-      error = 'please accept the agreements above'
+    if (state.get('step') == 'register') {
+      if (!state.get('acceptLegal') || !state.get('acceptCommunity')) {
+        error = 'please accept the agreements above'
+      }
     }
 
     if (!error || fatal) {
       state.set('agreementError', error)
     }
-  },
-
-  _isValid: function(state) {
-    if (state.get('emailError') || state.get('passwordError')) {
-      return false
-    }
-
-    if (state.get('step') == 'register' && state.get('agreementError')) {
-      return false
-    }
-
-    return true
+    return !error
   },
 
   validateUpdate: function(updater) {
     this.triggerUpdate(this.state.withMutations(state => {
       updater(state)
-      if (this._isValid(state)) {
+      if (_.all(_.map([
+        this._validateEmail,
+        this._validatePassword,
+        this._validateAgreements,
+      ], validator => validator(state)))) {
         state.set('valid', true)
+      }
+    }))
+  },
+
+  validateSubmit: function(callback, validators) {
+    this.triggerUpdate(this.state.withMutations(state => {
+      state.set('strict', true)
+      var valid = _.all(_.map([
+        this._validateEmail,
+        this._validatePassword,
+        this._validateAgreements,
+      ], validator => validator(state, true, true)))
+
+      state.set('valid', valid)
+
+      if (valid) {
+        state.set('working', true)
+        state.set('strict', false)
+        callback(state)
       }
     }))
   },
@@ -236,32 +294,25 @@ module.exports.store = Reflux.createStore({
   },
 
   signIn: function() {
-    this.triggerUpdate(this.state.withMutations(state => {
-      this._validateEmail(state, true)
-      this._validatePassword(state, true)
-
-      var valid = this._isValid(state)
-      state.set('valid', valid)
-
-      if (valid) {
-        state.set('working', true)
-        chat.login(state.get('email'), state.get('password'))
-      }
-    }))
+    this.validateSubmit(state => {
+      chat.login(state.get('email'), state.get('password'))
+    })
   },
 
   register: function() {
+    this.validateSubmit(state => {
+      chat.registerAccount(state.get('email'), state.get('password'))
+    })
+  },
+
+  resetPassword: function() {
     this.triggerUpdate(this.state.withMutations(state => {
-      this._validateEmail(state, true)
-      this._validatePassword(state, true)
-      this._validateAgreements(state, true)
-
-      var valid = this._isValid(state)
-      state.set('valid', valid)
-
-      if (valid) {
+      state.set('strict', true)
+      this._validateEmail(state, true, true)
+      if (!state.get('emailError')) {
         state.set('working', true)
-        chat.register(state.get('email'), state.get('password'))
+        state.set('strict', false)
+        chat.resetPassword(state.get('email'))
       }
     }))
   },
