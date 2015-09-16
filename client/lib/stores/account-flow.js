@@ -129,10 +129,6 @@ module.exports.store = Reflux.createStore({
     this.triggerUpdate(new StateRecord())
   },
 
-  openSignIn: function() {
-    this.triggerUpdate(this.state.set('step', 'signin'))
-  },
-
   openRegister: function() {
     this.triggerUpdate(this.state.set('step', 'register'))
   },
@@ -146,7 +142,7 @@ module.exports.store = Reflux.createStore({
     var error
 
     if (!email) {
-      error =  'please provide an email'
+      error =  'please enter an email'
     } else if (!/.+@.+/.test(email)) {
       error =  'is that an email address?'
     }
@@ -160,7 +156,7 @@ module.exports.store = Reflux.createStore({
     var error
 
     if (!state.get('password')) {
-      error = 'please provide a password'
+      error = 'please enter a password'
     } else if (state.get('step') == 'register' && state.get('passwordStrength').get('level') != 'strong') {
       error = 'please choose a stronger password'
     }
