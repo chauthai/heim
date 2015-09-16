@@ -25,6 +25,7 @@ module.exports = React.createClass({
   displayName: 'Main',
 
   mixins: [
+    require('./hooks-mixin'),
     Reflux.ListenerMixin,
     Reflux.connect(chat.store, 'chat'),
     Reflux.connect(activity.store, 'activity'),

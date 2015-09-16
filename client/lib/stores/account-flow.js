@@ -10,6 +10,7 @@ var entropizer = new Entropizer()
 
 var storeActions = Reflux.createActions([
   'reset',
+  'openSignIn',
   'openRegister',
   'openForgot',
   'changeEmail',
@@ -50,6 +51,7 @@ var StateRecord = Immutable.Record({
   passwordError: null,
   agreementError: null,
   highlightForgot: false,
+  showSignInButton: false,
   passwordStrength: null,
   working: false,
 })
@@ -57,7 +59,10 @@ var StateRecord = Immutable.Record({
 module.exports.store = Reflux.createStore({
   listenables: [
     storeActions,
-    {chatUpdate: chat.store},
+    {loginCompleted: chat.login.completed},
+    {loginFailed: chat.login.failed},
+    {registerCompleted: chat.register.completed},
+    {registerFailed: chat.register.failed},
   ],
 
   mixins: [require('./immutable-mixin')],
@@ -70,11 +75,62 @@ module.exports.store = Reflux.createStore({
     return this.state
   },
 
-  chatUpdate: function(chatState) {
+  _reloadPage: function() {
+    // FIXME: a page navigation seems to be the most reliable way to get
+    // Chrome to offer to save the password. when this is resolved, we should
+    // use this.socket.reconnect().
+    //
+    // see: https://code.google.com/p/chromium/issues/detail?id=357696#c37
+
+    // note: using location.replace instead of reload here so that resources
+    // are loaded from cache.
+    uiwindow.location.replace(window.location)
+  },
+
+  loginCompleted: function() {
+    if (this.state.get('step') == 'signin') {
+      this._reloadPage()
+    }
+  },
+
+  loginFailed: function(data) {
+    this.validateUpdate(state => {
+      if (state.get('step') == 'signin') {
+        state.set('working', false)
+        if (data.reason == 'account not found') {
+          state.set('emailError', 'account not found')
+        } else if (data.reason == 'access denied') {
+          state.set('passwordError', 'no dice, sorry!')
+          state.set('highlightForgot', true)
+        }
+      }
+    })
+  },
+
+  registerCompleted: function() {
+    if (this.state.get('step') == 'register') {
+      this._reloadPage()
+    }
+  },
+
+  registerFailed: function(data) {
+    this.validateUpdate(state => {
+      if (state.get('step') == 'register') {
+        state.set('working', false)
+        if (data.reason == 'personal identity already in use') {
+          state.set('emailError', 'this email is already in use')
+          state.set('showSignInButton', true)
+        }
+      }
+    })
   },
 
   reset: function() {
     this.triggerUpdate(new StateRecord())
+  },
+
+  openSignIn: function() {
+    this.triggerUpdate(this.state.set('step', 'signin'))
   },
 
   openRegister: function() {
@@ -118,7 +174,7 @@ module.exports.store = Reflux.createStore({
     var error
 
     if (!state.get('acceptLegal') || !state.get('acceptCommunity')) {
-      error = 'please accept the agreements above.'
+      error = 'please accept the agreements above'
     }
 
     if (!error || fatal) {
@@ -127,11 +183,11 @@ module.exports.store = Reflux.createStore({
   },
 
   _isValid: function(state) {
-    if (state.get('emailError')) {
+    if (state.get('emailError') || state.get('passwordError')) {
       return false
     }
 
-    if (state.get('step') == 'register' && (state.get('passwordError') || state.get('agreementError') || state.get('error'))) {
+    if (state.get('step') == 'register' && state.get('agreementError')) {
       return false
     }
 
@@ -193,6 +249,7 @@ module.exports.store = Reflux.createStore({
 
       if (valid) {
         state.set('working', true)
+        chat.login(state.get('email'), state.get('password'))
       }
     }))
   },
@@ -208,6 +265,7 @@ module.exports.store = Reflux.createStore({
 
       if (valid) {
         state.set('working', true)
+        chat.register(state.get('email'), state.get('password'))
       }
     }))
   },

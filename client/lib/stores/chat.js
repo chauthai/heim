@@ -24,6 +24,9 @@ var storeActions = module.exports.actions = Reflux.createActions([
   'editMessage',
   'banUser',
 ])
+storeActions.login = Reflux.createAction({asyncResult: true})
+storeActions.register = Reflux.createAction({asyncResult: true})
+
 storeActions.setRoomSettings.sync = true
 storeActions.messagesChanged.sync = true
 _.extend(module.exports, storeActions)
@@ -180,6 +183,17 @@ module.exports.store = Reflux.createStore({
         this.state.bannedIds = this.state.bannedIds.add(ev.data.id)
       } else {
         console.warn('error banning:', ev.error)
+      }
+    } else if (ev.type == 'login-reply' || ev.type == 'register-account-reply') {
+      var kind = ev.type == 'login-reply' ? 'login' : 'register'
+      if (ev.data.success) {
+        storeActions[kind].completed()
+      } else {
+        storeActions[kind].failed(ev.data)
+      }
+    } else if (ev.type == 'disconnect-event') {
+      if (ev.data.reason == 'authentication changed') {
+        this.socket.reconnect()
       }
     } else if (ev.type == 'ping-event' || ev.type == 'ping-reply') {
       // ignore
@@ -491,6 +505,28 @@ module.exports.store = Reflux.createStore({
       data: {
         content: content,
         parent: parent || null,
+      },
+    })
+  },
+
+  login: function(email, password) {
+    this.socket.send({
+      type: 'login',
+      data: {
+        namespace: 'email',
+        id: email,
+        password: password,
+      },
+    })
+  },
+
+  register: function(email, password) {
+    this.socket.send({
+      type: 'register-account',
+      data: {
+        namespace: 'email',
+        id: email,
+        password: password,
       },
     })
   },

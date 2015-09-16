@@ -76,18 +76,18 @@ module.exports = React.createClass({
           <div className="register-fine-print">
             hey, this is important:
             <div className="check-field">
-              <input type="checkbox" tabIndex="3" id="accept-legal" disabled={flow.working} onChange={this.onChangeAcceptLegal} />
+              <input type="checkbox" tabIndex="3" id="accept-legal" disabled={flow.working} checked={flow.acceptLegal} onChange={this.onChangeAcceptLegal} />
               <label htmlFor="accept-legal">I agree to Euphoria's <a href target="_blank">Terms of Service</a> and <a href target="_blank">Privacy Policy</a>.</label>
             </div>
             <div className="check-field">
-              <input type="checkbox" tabIndex="3" id="accept-community" disabled={flow.working} onChange={this.onChangeAcceptCommunity} />
+              <input type="checkbox" tabIndex="3" id="accept-community" disabled={flow.working} checked={flow.acceptCommunity} onChange={this.onChangeAcceptCommunity} />
               <label htmlFor="accept-community">I will respect and uphold Euphoria's <a href target="_blank">rules</a> and <a href target="_blank">values</a>.</label>
             </div>
           </div>
           <div className="action-line">
             <div className="spacer" />
             {flow.agreementError && <div className="message">{flow.agreementError}</div>}
-            <Spinner visible={flow.working} />
+            {flow.showSignInButton && <button type="button" tabIndex="4" className="open-signin" onClick={accountFlow.openSignIn}>back to sign in</button>}
             <button type="submit" tabIndex="3" className="register" disabled={!flow.valid || flow.working} onClick={accountFlow.register}>register</button>
           </div>
         </div>
@@ -110,8 +110,7 @@ module.exports = React.createClass({
           <div className="action-line">
             <button type="button" tabIndex="4" className={classNames('forgot', flow.highlightForgot && 'highlight')} disabled={flow.working} onClick={accountFlow.openForgot}>forgot password?</button>
             <div className="spacer" />
-            {!flow.working && <button type="button" tabIndex="4" className="open-register" onClick={this.onRegisterClick}>register</button>}
-            <Spinner visible={flow.working} />
+            <button type="button" tabIndex="4" className="open-register" onClick={this.onRegisterClick}>register</button>
             <button key="sign-in" type="submit" tabIndex="3" className="sign-in" disabled={!flow.valid || flow.working} onClick={accountFlow.signIn}>sign in</button>
           </div>
         </div>
@@ -126,6 +125,7 @@ module.exports = React.createClass({
             euphoria
           </div>
           <div className="title">{title}</div>
+          <Spinner visible={flow.working} />
           <div className="spacer" />
           <FastButton className="close" onClick={this.props.onClose} />
         </div>
