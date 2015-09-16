@@ -191,10 +191,6 @@ module.exports.store = Reflux.createStore({
       } else {
         storeActions[kind].failed(ev.data)
       }
-    } else if (ev.type == 'disconnect-event') {
-      if (ev.data.reason == 'authentication changed') {
-        this.socket.reconnect()
-      }
     } else if (ev.type == 'ping-event' || ev.type == 'ping-reply') {
       // ignore
       return
