@@ -21,6 +21,7 @@ var storeActions = module.exports.actions = Reflux.createActions([
   'markMessagesSeen',
   'setSelected',
   'deselectAll',
+  'logout',
   'editMessage',
   'banUser',
 ])
@@ -59,6 +60,7 @@ module.exports.store = Reflux.createStore({
       authType: null,
       authState: null,
       authData: null,
+      account: null,
       isManager: null,
       isStaff: null,
       messages: new ChatTree(),
@@ -128,6 +130,11 @@ module.exports.store = Reflux.createStore({
       this.state.isManager = ev.data.session.is_manager
       this.state.isStaff = ev.data.session.is_staff
       this.state.authType = ev.data.room_is_private ? 'passcode' : 'public'
+      this.state.account = Immutable.fromJS(ev.data.account)
+      if (this.state.account) {
+        // FIXME placholder until we have account name information
+        this.state.account = this.state.account.set('name', this.state.tentativeNick)
+      }
       if (ev.data.account_has_access) {
         // note: if there was a stored passcode, we could have an outgoing
         // auth event and authState == 'trying-stored'
@@ -197,6 +204,10 @@ module.exports.store = Reflux.createStore({
         storeActions.resetPassword.failed(ev)
       } else {
         storeActions.resetPassword.completed()
+      }
+    } else if (ev.type == 'disconnect-event') {
+      if (ev.data.reason == 'authentication changed') {
+        this.socket.reconnect()
       }
     } else if (ev.type == 'ping-event' || ev.type == 'ping-reply') {
       // ignore
@@ -509,6 +520,12 @@ module.exports.store = Reflux.createStore({
         content: content,
         parent: parent || null,
       },
+    })
+  },
+
+  logout: function() {
+    this.socket.send({
+      type: 'logout',
     })
   },
 

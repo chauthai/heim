@@ -43,6 +43,8 @@ var storeActions = module.exports.actions = Reflux.createActions([
   'finishMessageSelectionDrag',
   'openManagerToolbox',
   'closeManagerToolbox',
+  'openAccountPopup',
+  'closeAccountPopup',
   'openAccountDialog',
   'closeAccountDialog',
 ])
@@ -89,6 +91,7 @@ var store = module.exports.store = Reflux.createStore({
       selectedThread: null,
       lastSelectedThread: null,
       threadPopupAnchorEl: null,
+      accountPopupAnchorEl: null,
       managerMode: false,
       managerToolboxAnchorEl: null,
       draggingMessageSelection: false,
@@ -116,6 +119,10 @@ var store = module.exports.store = Reflux.createStore({
 
   chatChange: function(state) {
     this.chatState = state
+
+    if (!this.chatState.connected) {
+      this.closeAccountPopup()
+    }
   },
 
   notificationChange: function(state) {
@@ -428,6 +435,19 @@ var store = module.exports.store = Reflux.createStore({
 
   finishMessageSelectionDrag: function() {
     this.state.draggingMessageSelection = false
+    this.trigger(this.state)
+  },
+
+  openAccountPopup: function(anchorEl) {
+    this.state.accountPopupAnchorEl = anchorEl
+    if (this.state.thin) {
+      storeActions.panViewTo('main')
+    }
+    this.trigger(this.state)
+  },
+
+  closeAccountPopup: function() {
+    this.state.accountPopupAnchorEl = null
     this.trigger(this.state)
   },
 

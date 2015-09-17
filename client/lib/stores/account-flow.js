@@ -90,7 +90,7 @@ module.exports.store = Reflux.createStore({
 
     // note: using location.replace instead of reload here so that resources
     // are loaded from cache.
-    if (uiwindow.hash) {
+    if (uiwindow.location.hash) {
       uiwindow.location.reload()
     } else {
       uiwindow.location.replace(uiwindow.location)

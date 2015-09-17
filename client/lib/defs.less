@@ -92,6 +92,55 @@
   }
 }
 
+.line-button(@color) {
+  position: relative;
+  color: @color;
+  font-weight: bold;
+  background: linear-gradient(to bottom, fade(@color, 0%) 0%, fade(@color, 35%) 0%) repeat-x;
+  background-size: 1px 1px;
+  background-position: 0 1.1em;
+  .touchable-custom({
+    color: black;
+  });
+
+  transition: color .25s ease;
+
+  .larger-target(10px, 10px);
+
+  &:focus {
+    color: mix(@color, black, 15%);
+    background: fade(@account-color, 20%);
+    border-radius: 3px;
+  }
+
+  &:disabled {
+    opacity: .5;
+  }
+}
+
+.fill-button(@color) {
+  @bgcolor: mix(lighten(@color, 5%), white, 30%);
+  color: @color;
+  font-weight: bold;
+  background: @bgcolor;
+  .touchable-custom({
+    background: fade(@color, 50%)
+  });
+  padding: 10px 26px;
+  border-radius: 3px;
+
+  // prevent other properties from transitioning when form switches into forgot password mode
+  transition: background .25s ease, opacity .25s ease;
+
+  &:focus {
+    background: darken(@bgcolor, 10%);
+  }
+
+  &:disabled {
+    opacity: .5;
+  }
+}
+
 .hex {
   position: relative;
 

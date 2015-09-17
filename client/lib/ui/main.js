@@ -15,6 +15,7 @@ var NotificationSettings = require('./notification-settings')
 var NotificationList = require('./notification-list')
 var ThreadList = require('./thread-list')
 var UserList = require('./user-list')
+var AccountButton = require('./account-button')
 var AccountDialog = require('./account-dialog')
 var Bubble = require('./bubble')
 var FastButton = require('./fast-button')
@@ -173,6 +174,10 @@ module.exports = React.createClass({
     ui.gotoMessageInPane(id)
   },
 
+  openAccountPopup: function() {
+    ui.openAccountPopup(this.refs.accountButton.getDOMNode())
+  },
+
   openManagerToolbox: function() {
     ui.openManagerToolbox(this.refs.toolboxButton.getDOMNode())
   },
@@ -268,7 +273,7 @@ module.exports = React.createClass({
           {this.state.storage && this.state.storage.useOpenDyslexic && <link rel="stylesheet" type="text/css" id="css" href="/static/od.css" />}
           <div className="info-pane" onMouseEnter={ui.freezeInfo} onMouseLeave={ui.thawInfo}>
             {this.state.ui.managerMode && <FastButton ref="toolboxButton" className={classNames('toolbox-button', {'empty': !this.state.chat.selectedMessages.size, 'selected': !!this.state.ui.managerToolboxAnchorEl})} onClick={this.state.ui.managerToolboxAnchorEl ? ui.closeManagerToolbox : this.openManagerToolbox}>toolbox {selectedMessageCount > -1 && <span className="count">{selectedMessageCount} selected</span>}</FastButton>}
-            <div className="account-area"><FastButton className="account-button" onClick={ui.openAccountDialog}>sign in or register</FastButton></div>
+            {this.state.chat.connected && <div className="account-area"><AccountButton ref="accountButton" account={this.state.chat.account} onOpenAccountDialog={ui.openAccountDialog} onOpenAccountPopup={this.openAccountPopup} /></div>}
             <h2>discussions</h2>
             <div className="thread-list-container">
               <ThreadList ref="threadList" threadData={ui.store.threadData} threadTree={this.state.ui.frozenThreadList || this.state.chat.messages.threads} tree={this.state.chat.messages} onScroll={this.onThreadsScroll} onThreadSelect={this.onThreadSelect} />
@@ -320,6 +325,9 @@ module.exports = React.createClass({
               <FastButton className="scroll-to" onClick={ui.gotoPopupMessage}>go to</FastButton>
             </div>
             {selectedThread && <ChatPane key={this.state.ui.popupPane} pane={this.state.ui.panes.get(this.state.ui.popupPane)} afterRender={() => this.refs.threadPopup.reposition()} showParent={true} showAllReplies={true} />}
+          </Bubble>}
+          {!thin && <Bubble className="account-popup bubble-from-top" anchorEl={this.state.ui.accountPopupAnchorEl} visible={!!this.state.ui.accountPopupAnchorEl} onDismiss={ui.closeAccountPopup} offset={anchorBox => ({ left: anchorBox.width, top: -anchorBox.height })}>
+            <FastButton className="sign-out" onClick={chat.logout}>sign out</FastButton>
           </Bubble>}
           {!thin && this.state.ui.managerMode && <Bubble ref="managerToolboxPopup" className="manager-toolbox-popup bubble-from-top" anchorEl={this.state.ui.managerToolboxAnchorEl} visible={!!this.state.ui.managerToolboxAnchorEl} offset={anchorBox => ({ left: anchorBox.width, top: -anchorBox.height })}>
             <ManagerToolbox />
